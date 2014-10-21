@@ -15,6 +15,7 @@ def index():
 @app.route("/melons")
 def list_melons():
     """This is the big page showing all the melons ubermelon has to offer"""
+
     melons = model.get_melons()
     return render_template("all_melons.html",
                            melon_list = melons)
@@ -33,7 +34,24 @@ def shopping_cart():
     """TODO: Display the contents of the shopping cart. The shopping cart is a
     list held in the session that contains all the melons to be added. Check
     accompanying screenshots for details."""
-    return render_template("cart.html")
+    info = []
+    for melon_id, quantity in session["melons"].iteritems():
+        melon = model.get_melon_by_id(int(melon_id))
+        melon_info = {
+            'common_name': melon.common_name,
+            'quantity': quantity,
+            'price': melon.price,
+            'price_str': melon.price_str(),
+            'total': "$%.2f" % (quantity * melon.price)
+        }
+        info.append(melon_info)
+
+    total = 0
+
+    for i in info:
+        total += i["quantity"] * i["price"]
+
+    return render_template("cart.html", cart_info = info, total = total)
 
 @app.route("/add_to_cart/<int:id>")
 def add_to_cart(id):
@@ -43,8 +61,12 @@ def add_to_cart(id):
     Intended behavior: when a melon is added to a cart, redirect them to the
     shopping cart page, while displaying the message
     "Successfully added to cart" """
-
-    return "Oops! This needs to be implemented!"
+    
+    melon_id = str(id)
+    session.setdefault("melons", {})
+    session["melons"][melon_id] = session["melons"].get(melon_id, 0) + 1
+    flash("Successfully added melon to cart")
+    return redirect("/cart")
 
 
 @app.route("/login", methods=["GET"])
@@ -56,7 +78,15 @@ def show_login():
 def process_login():
     """TODO: Receive the user's login credentials located in the 'request.form'
     dictionary, look up the user, and store them in the session."""
-    return "Oops! This needs to be implemented"
+    email = request.form['email']
+    # USER: jean@fliptune.org
+    # password: 39783d575cb0831bc6293f7585e6a3e0
+
+    name = model.get_customer_by_email(email)
+    session['username'] = name[0]
+
+    flash("Welcome, %s!" % session['username'])
+    return redirect ("/cart")
 
 
 @app.route("/checkout")

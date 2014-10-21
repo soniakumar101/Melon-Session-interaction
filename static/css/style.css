@@ -72,4 +72,10 @@ div.cart {
   border-top-right-radius: 0;
 }
 img.melon-cart {
+  height: 15px;
+}
+.navbar-welcome {
+  color: #999;
+  margin-top: 15px;
+  margin-right: 1em;
 }
